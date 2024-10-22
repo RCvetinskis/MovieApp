@@ -17,7 +17,7 @@ import { Label } from "@/components/ui/label";
 import { useTransition } from "react";
 import { patchUser } from "@/actions/backend/user";
 import { toast } from "sonner";
-import useUser from "@/hooks/useUser";
+import { useUserStore } from "@/store/store-user";
 
 type Props = {
   userId: string;
@@ -101,7 +101,8 @@ const EditProfileForm = ({ userId, userName }: Props) => {
   });
 
   const [isPending, startTransition] = useTransition();
-  const { mutate } = useUser();
+
+  const { setUser } = useUserStore();
   function onSubmit(values: z.infer<typeof formSchema>) {
     const body = new FormData();
 
@@ -117,8 +118,8 @@ const EditProfileForm = ({ userId, userName }: Props) => {
     startTransition(() => {
       patchUser(userId, body)
         .then((res) => {
+          setUser(res.result);
           toast.success(res.message);
-          mutate();
         })
         .catch((e) => toast.error(e.message));
     });

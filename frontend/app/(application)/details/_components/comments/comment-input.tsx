@@ -9,9 +9,9 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { cn } from "@/lib/utils";
 import { postComment, replyComment } from "@/actions/backend/comment";
 import { useToast } from "@/hooks/use-toast";
-import useUser from "@/hooks/useUser";
 import { useSetAuthorizedDialog } from "@/store/store";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useUserStore } from "@/store/store-user";
 
 const FormSchema = z.object({
   message: z.string().min(1).max(300),
@@ -25,7 +25,7 @@ type Props = {
 const CommentInput = ({ postId, commentId, className }: Props) => {
   const [isFocused, setIsFocused] = useState(false);
   const [isPending, startTransition] = useTransition();
-  const { user } = useUser();
+  const { user } = useUserStore();
   const { toast } = useToast();
   const { setOpen } = useSetAuthorizedDialog();
 

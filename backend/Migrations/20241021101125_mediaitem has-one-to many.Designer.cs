@@ -4,6 +4,7 @@ using FavoriteMovieAppBackEnd.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace FavoriteMovieAppBackEnd.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20241021101125_mediaitem has-one-to many")]
+    partial class mediaitemhasonetomany
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -242,34 +245,6 @@ namespace FavoriteMovieAppBackEnd.Migrations
                     b.HasIndex("WatchlistId");
 
                     b.ToTable("MediaItem");
-                });
-
-            modelBuilder.Entity("FavoriteMovieAppBackEnd.Models.Entities.Notification", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<bool>("IsSeen")
-                        .HasColumnType("bit");
-
-                    b.Property<string>("Message")
-                        .IsRequired()
-                        .HasMaxLength(255)
-                        .HasColumnType("nvarchar(255)");
-
-                    b.Property<string>("UserId")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(450)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("UserId");
-
-                    b.ToTable("Notification");
                 });
 
             modelBuilder.Entity("FavoriteMovieAppBackEnd.Models.Entities.ProfileImage", b =>
@@ -553,17 +528,6 @@ namespace FavoriteMovieAppBackEnd.Migrations
                     b.Navigation("Watchlist");
                 });
 
-            modelBuilder.Entity("FavoriteMovieAppBackEnd.Models.Entities.Notification", b =>
-                {
-                    b.HasOne("FavoriteMovieAppBackEnd.Data.ApplicationUser", "User")
-                        .WithMany("Notification")
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("User");
-                });
-
             modelBuilder.Entity("FavoriteMovieAppBackEnd.Models.Entities.ProfileImage", b =>
                 {
                     b.HasOne("FavoriteMovieAppBackEnd.Data.ApplicationUser", "User")
@@ -646,8 +610,6 @@ namespace FavoriteMovieAppBackEnd.Migrations
                     b.Navigation("Favorites");
 
                     b.Navigation("Likes");
-
-                    b.Navigation("Notification");
 
                     b.Navigation("ProfileImage");
 

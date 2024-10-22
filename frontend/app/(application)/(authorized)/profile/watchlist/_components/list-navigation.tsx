@@ -29,7 +29,7 @@ const ListNavigation = ({ isEdit }: Props) => {
   return (
     <div className="flex items-center flex-wrap gap-2">
       <Button
-        onClick={() => handleToggle(undefined)}
+        onClick={() => handleToggle()}
         variant={!navStep ? "shimmer" : "outline"}
       >
         Edit List

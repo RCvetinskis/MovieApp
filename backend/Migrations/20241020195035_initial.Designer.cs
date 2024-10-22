@@ -4,6 +4,7 @@ using FavoriteMovieAppBackEnd.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace FavoriteMovieAppBackEnd.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20241020195035_initial")]
+    partial class initial
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -176,7 +179,8 @@ namespace FavoriteMovieAppBackEnd.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("MediaItemId");
+                    b.HasIndex("MediaItemId")
+                        .IsUnique();
 
                     b.HasIndex("UserId");
 
@@ -217,6 +221,9 @@ namespace FavoriteMovieAppBackEnd.Migrations
                     b.Property<DateTime>("AddedAt")
                         .HasColumnType("datetime2");
 
+                    b.Property<Guid?>("FavoriteId")
+                        .HasColumnType("uniqueidentifier");
+
                     b.Property<DateTime?>("LastEpisodeDate")
                         .HasColumnType("datetime2");
 
@@ -242,34 +249,6 @@ namespace FavoriteMovieAppBackEnd.Migrations
                     b.HasIndex("WatchlistId");
 
                     b.ToTable("MediaItem");
-                });
-
-            modelBuilder.Entity("FavoriteMovieAppBackEnd.Models.Entities.Notification", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<bool>("IsSeen")
-                        .HasColumnType("bit");
-
-                    b.Property<string>("Message")
-                        .IsRequired()
-                        .HasMaxLength(255)
-                        .HasColumnType("nvarchar(255)");
-
-                    b.Property<string>("UserId")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(450)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("UserId");
-
-                    b.ToTable("Notification");
                 });
 
             modelBuilder.Entity("FavoriteMovieAppBackEnd.Models.Entities.ProfileImage", b =>
@@ -508,8 +487,8 @@ namespace FavoriteMovieAppBackEnd.Migrations
             modelBuilder.Entity("FavoriteMovieAppBackEnd.Models.Entities.Favorites", b =>
                 {
                     b.HasOne("FavoriteMovieAppBackEnd.Models.Entities.MediaItem", "MediaItem")
-                        .WithMany("Favorites")
-                        .HasForeignKey("MediaItemId")
+                        .WithOne("Favorite")
+                        .HasForeignKey("FavoriteMovieAppBackEnd.Models.Entities.Favorites", "MediaItemId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -551,17 +530,6 @@ namespace FavoriteMovieAppBackEnd.Migrations
                         .OnDelete(DeleteBehavior.Cascade);
 
                     b.Navigation("Watchlist");
-                });
-
-            modelBuilder.Entity("FavoriteMovieAppBackEnd.Models.Entities.Notification", b =>
-                {
-                    b.HasOne("FavoriteMovieAppBackEnd.Data.ApplicationUser", "User")
-                        .WithMany("Notification")
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("FavoriteMovieAppBackEnd.Models.Entities.ProfileImage", b =>
@@ -647,8 +615,6 @@ namespace FavoriteMovieAppBackEnd.Migrations
 
                     b.Navigation("Likes");
 
-                    b.Navigation("Notification");
-
                     b.Navigation("ProfileImage");
 
                     b.Navigation("Watchlist");
@@ -665,7 +631,7 @@ namespace FavoriteMovieAppBackEnd.Migrations
 
             modelBuilder.Entity("FavoriteMovieAppBackEnd.Models.Entities.MediaItem", b =>
                 {
-                    b.Navigation("Favorites");
+                    b.Navigation("Favorite");
                 });
 
             modelBuilder.Entity("FavoriteMovieAppBackEnd.Models.Entities.Watchlist", b =>

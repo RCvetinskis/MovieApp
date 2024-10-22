@@ -20,6 +20,7 @@ export function middleware(request: NextRequest) {
       response.cookies.delete("auth_token");
       response.cookies.delete("expires_at");
       response.cookies.delete("userId");
+      response.cookies.delete("user");
       request.cookies.clear();
       return response;
     }

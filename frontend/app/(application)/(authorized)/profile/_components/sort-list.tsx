@@ -34,7 +34,7 @@ const options = [
     label: "Tv Shows first",
   },
   {
-    value: "movie_frist",
+    value: "movie_first",
     label: "Movies first",
   },
 ];

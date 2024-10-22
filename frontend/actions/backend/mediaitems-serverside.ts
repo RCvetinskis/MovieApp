@@ -2,7 +2,7 @@
 import axios from "axios";
 import { API_URL, httpsAgent } from "./utils";
 import { getUserTokenId } from "./get-user-token-id";
-import { IMediaItemsApiResposne } from "@/types";
+import { IMediaItemForReactProps, IMediaItemsApiResposne } from "@/types";
 
 export const getMediaitemsByWatchListId = async (
   watchlistId: string,
@@ -50,11 +50,7 @@ interface IAddMediaItemResponse {
 }
 export const addMediaItemToWatchlist = async (
   watchlistId: string,
-  mediaItem: {
-    type: string;
-    tmdbId: string;
-    title: string;
-  }
+  mediaItem: IMediaItemForReactProps
 ): Promise<IAddMediaItemResponse> => {
   try {
     const { token, userId } = await getUserTokenId();

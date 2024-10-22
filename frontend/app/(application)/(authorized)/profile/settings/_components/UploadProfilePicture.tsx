@@ -2,8 +2,8 @@
 import { patchUserImage } from "@/actions/backend/user";
 import { Button } from "@/components/ui/button";
 import FileUpload from "@/components/ui/file-upload";
-import useUser from "@/hooks/useUser";
 import { useUploadProfilePicture } from "@/store/store";
+import { useUserStore } from "@/store/store-user";
 import { useTransition } from "react";
 import { toast } from "sonner";
 
@@ -14,7 +14,7 @@ type Props = {
 
 const UploadProfilePicture = ({ userId, existingImage }: Props) => {
   const { file, setFile } = useUploadProfilePicture();
-  const { mutate } = useUser();
+
   const defaultImage = "/assets/avatar.jpg";
 
   const imageSrc = file
@@ -26,6 +26,7 @@ const UploadProfilePicture = ({ userId, existingImage }: Props) => {
   };
 
   const [isPending, startTransition] = useTransition();
+  const { setUser } = useUserStore();
   function onUpload() {
     if (!file) return null;
     const body = new FormData();
@@ -34,8 +35,8 @@ const UploadProfilePicture = ({ userId, existingImage }: Props) => {
     startTransition(() => {
       patchUserImage(userId, body)
         .then((res) => {
+          setUser(res.result);
           toast.success(res.message);
-          mutate();
         })
         .catch((e) => toast.error(e.message));
     });
@@ -46,7 +47,7 @@ const UploadProfilePicture = ({ userId, existingImage }: Props) => {
       <div className="rounded-full p-1 border">
         <img
           src={imageSrc}
-          alt="profile picture"
+          alt="profile"
           width={200}
           height={200}
           className="aspect-square object-cover rounded-full"

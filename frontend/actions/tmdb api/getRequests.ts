@@ -2,6 +2,7 @@
 import axios from "axios";
 import { options } from "./utils/options";
 import {
+  IFavorite,
   IMediaType,
   MovieAPICreditsResponse,
   MovieApiVideoResponse,
@@ -166,7 +167,7 @@ export const getDiscover = async (
   }
 };
 
-export const getMediaById = async (id: string, type: "tv" | "movie") => {
+export const getMediaById = async (id: string, type: IMediaType) => {
   try {
     const { data } = await axios.get(
       `${process.env.THE_MOVIE_DB_API_URL}/${type}/${id}?language=en-US`,
@@ -466,6 +467,39 @@ export const getMediaBelongingToPerson = async (
       results: paginatedResults,
       totalPages,
     };
+  } catch (error) {
+    return null;
+  }
+};
+
+export const fetchMediaItemsByids = async (favoriteIds: IFavorite[]) => {
+  try {
+    // Fetch all media items using the provided favoriteIds array
+    const mediaItems = await Promise.all(
+      favoriteIds.map(async (favorite) => {
+        return await getMediaById(favorite.tmdbId, favorite.type);
+      })
+    );
+
+    // Filter out any null or undefined results (in case of errors)
+    return mediaItems.filter((item) => item !== null && item !== undefined);
+  } catch (error) {
+    console.log("Error fetching media items by IDs:", error);
+    return [];
+  }
+};
+
+export const getEpisodeAirDates = async (tmdbId: string) => {
+  try {
+    const { data } = await axios.get(
+      `${process.env.THE_MOVIE_DB_API_URL}/tv/${tmdbId}?language=en-US`,
+      options
+    );
+    const airDates = {
+      lastEpisodeDate: data.last_air_date,
+      nextEpisodeDate: data.next_episode_to_air.air_date,
+    };
+    return airDates;
   } catch (error) {
     return null;
   }

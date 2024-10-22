@@ -14,13 +14,11 @@ type Props = {
 };
 
 const MainContainer = async ({ watchlistId, searchParams }: Props) => {
-  // TODO: refactor code, stop using everywhere cookies, implement query and sortby from frontend
   const { page, query, sortBy } = searchParams;
 
-  let content;
   const mediaData = await getMediaitemsByWatchListId(
     watchlistId,
-    Number(page || 1),
+    Number(page ?? 1),
     limit,
     query,
     sortBy

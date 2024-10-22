@@ -1,5 +1,5 @@
 import axios from "axios";
-import { API_URL, httpsAgent } from "./utils";
+import { httpsAgent } from "./utils";
 import { getUserTokenId } from "./get-user-token-id";
 
 export const postComment = async (postId: string, message: string) => {

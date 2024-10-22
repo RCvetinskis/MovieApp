@@ -7,14 +7,30 @@ import NavUser from "@/components/authenticated/navigation/nav-user";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Route } from "@/types";
 import { usePathname } from "next/navigation";
-import useUser from "./useUser";
 
 import NavLogin from "@/components/navigation/nav-login";
+import { useUserStore } from "@/store/store-user";
+import NavNotification from "@/components/authenticated/navigation/nav-notification";
 
 const useRoutes = () => {
   const pathname = usePathname();
 
-  const { user } = useUser();
+  const { user } = useUserStore();
+
+  const authRoutes: Route[] = [
+    {
+      href: undefined,
+      label: "Notifications",
+      active: undefined,
+      Component: NavNotification,
+    },
+    {
+      href: undefined,
+      label: user ? user.userName : "Profile",
+      active: pathname.includes("profile"),
+      Component: NavUser,
+    },
+  ];
 
   const routes: Route[] = [
     {
@@ -41,20 +57,18 @@ const useRoutes = () => {
       active: undefined,
       Component: ThemeToggle,
     },
-    !user
-      ? {
-          href: "/login",
-          label: "Login",
-          active: pathname.includes("login") || pathname.includes("register"),
-          Component: NavLogin,
-        }
-      : {
-          href: undefined,
-          label: user ? user.userName : "Profile",
-          active: pathname.includes("profile"),
-          Component: NavUser,
-        },
   ];
+  if (!user) {
+    routes.push({
+      href: "/login",
+      label: "Login",
+      active: pathname.includes("login") || pathname.includes("register"),
+      Component: NavLogin,
+    });
+  } else {
+    routes.push(...authRoutes);
+  }
+
   return routes;
 };
 

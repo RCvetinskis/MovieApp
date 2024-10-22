@@ -162,7 +162,7 @@ export interface IFavoriteResponse {
 
 export interface IFavorite {
   id: string;
-  type: string;
+  type: IMediaType;
   tmdbId: string;
   createdAt: string;
 }
@@ -203,11 +203,11 @@ export interface IWatchListResponse {
 export interface IMediaItem {
   id: string;
   tmdbId: string;
-  type: string;
+  type: IMediaType;
   title?: string;
+  lastEpisodeDate?: string;
+  nextEpisodeDate?: string;
   addedAt?: string;
-  lastEpisodeDate: string;
-  nextEpisodeDate: string;
 }
 export type IMediaItemsResponse = {
   page: number;
@@ -348,4 +348,25 @@ export interface IPerson {
   place_of_birth: string;
   popularity: number;
   profile_path: string;
+}
+
+export interface IMediaItemForReactProps {
+  tmdbId: string;
+  type: IMediaType;
+  title?: string;
+  lastEpisodeDate?: string;
+  nextEpisodeDate?: string;
+}
+
+export interface IAirDates {
+  lastEpisodeDate?: string;
+  nextEpisodeDate?: string;
+}
+
+export interface INotification {
+  id: string;
+  userId: string;
+  message: string;
+  isSeen?: boolean;
+  createdAt?: string;
 }

@@ -14,13 +14,12 @@ import {
 } from "@/components/ui/form";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import Cookies from "js-cookie";
 import { useTransition } from "react";
 import { onLogin } from "@/actions/backend/auth";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import ButtonLink from "@/components/buttons/button-link";
-
+import { useUserStore } from "@/store/store-user";
 const formSchema = z.object({
   email: z
     .string()
@@ -45,18 +44,15 @@ export const SignIn = () => {
   });
 
   const [isPending, startTransition] = useTransition();
+  const { setUser, setAuthCookies } = useUserStore();
   function onSubmit(values: z.infer<typeof formSchema>) {
     startTransition(() => {
       onLogin(values.email, values.password)
         .then((res) => {
           toast.success(res.message);
-          const token = Cookies.set("auth_token", res.auth_token);
-          Cookies.set("expires_at", res.expires_at);
-          Cookies.set("userId", res.userId);
-          if (token) {
-            router.push("/profile");
-          }
-          return;
+          setUser(res.user);
+          setAuthCookies(res.auth_token, res.expires_at, res.user.id);
+          router.push("/profile");
         })
         .catch((e) => toast.error(e.message || "Something went wrong!"));
     });

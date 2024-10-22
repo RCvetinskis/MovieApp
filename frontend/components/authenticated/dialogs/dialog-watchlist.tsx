@@ -12,31 +12,28 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Skeleton } from "@/components/ui/skeleton";
-import useUser from "@/hooks/useUser";
 import { cn } from "@/lib/utils";
 import { useSetAuthorizedDialog } from "@/store/store";
+import { useUserStore } from "@/store/store-user";
+import { IMediaItemForReactProps } from "@/types";
 import { VariantProps } from "class-variance-authority";
 import { ListIcon } from "lucide-react";
 
 type Props = {
-  mediaItem: {
-    type: "tv" | "movie";
-    tmdbId: string;
-    title: string;
-  };
+  mediaItem: IMediaItemForReactProps;
   variant?: VariantProps<typeof buttonVariants>["variant"];
   size?: VariantProps<typeof buttonVariants>["size"];
   className?: string;
 };
 
 const DialogWatchlist = ({ mediaItem, variant, className, size }: Props) => {
-  const { user } = useUser();
+  const { user } = useUserStore();
   const { setOpen } = useSetAuthorizedDialog();
   const handleClick = () => {
     if (!user) {
       return setOpen(true);
     }
-    return;
+    return null;
   };
   return (
     <Dialog>
@@ -45,7 +42,7 @@ const DialogWatchlist = ({ mediaItem, variant, className, size }: Props) => {
           <Button
             onClick={handleClick}
             size={size}
-            variant={variant ? variant : "ghost"}
+            variant={variant ?? "ghost"}
             className={cn(className)}
           >
             <ListIcon />

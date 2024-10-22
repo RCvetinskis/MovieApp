@@ -18,18 +18,14 @@ import {
 } from "@/components/ui/popover";
 
 import { getWatchListsByUserId } from "@/actions/backend/watchlist-serverside";
-import { IWatchListResponse } from "@/types";
+import { IMediaItemForReactProps, IWatchListResponse } from "@/types";
 import { useDebounce } from "@/hooks/useDebounce";
 
 import { addMediaItemToWatchlist } from "@/actions/backend/mediaitems-serverside";
 import { useToast } from "@/hooks/use-toast";
 
 type Props = {
-  mediaItem: {
-    type: "tv" | "movie";
-    tmdbId: string;
-    title: string;
-  };
+  mediaItem: IMediaItemForReactProps;
 };
 export const WatchlistCombobox = ({ mediaItem }: Props) => {
   const [open, setOpen] = useState(false);

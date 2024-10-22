@@ -1,6 +1,6 @@
 import { getMediaById } from "@/actions/tmdb api/getRequests";
 import { limit, tmdbImageUrl } from "@/lib/constants";
-import { Movie } from "@/types";
+import { IMediaType, Movie } from "@/types";
 import Header from "../../_components/header";
 import Image from "next/image";
 import RatingComponent from "@/components/rating-component";
@@ -41,6 +41,12 @@ const MovieDetailsPage = async ({ params }: Props) => {
     ? `${tmdbImageUrl}/${movie.poster_path}`
     : "/assets/no_image.jpg";
 
+  const mediaItem = {
+    tmdbId: movie.id.toString(),
+    type: "movie" as IMediaType,
+    title: movie.title,
+  };
+
   return (
     <Suspense fallback={<MoviePageSkeleton />}>
       <div className="space-y-8 ">
@@ -79,11 +85,7 @@ const MovieDetailsPage = async ({ params }: Props) => {
                 <ProductionCountries countries={movie.production_countries} />
               </div>
 
-              <ActionsContainer
-                tmdbId={movie.id.toString()}
-                type="movie"
-                title={movie.title}
-              />
+              <ActionsContainer mediaItem={mediaItem} />
 
               <KeyWordsContainer id={movie.id.toString()} type="movie" />
 

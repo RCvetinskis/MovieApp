@@ -1,14 +1,19 @@
 "use client";
 import ButtonTitleIcon from "../buttons/button-icon-title";
 import { Bell, LogOut, Settings } from "lucide-react";
-import useLogout from "@/hooks/useLogout";
 import TitleSkeleton from "../skeletons/title-skeleton";
 import BtnSkeleton from "../skeletons/btn-skeleton";
 import { useRouter } from "next/navigation";
+import { useUserStore } from "@/store/store-user";
 
 const LinksAccount = () => {
-  const logout = useLogout();
+  const { clearUser } = useUserStore();
   const router = useRouter();
+
+  const handleLogout = () => {
+    clearUser();
+    router.push("/login");
+  };
   return (
     <div>
       <h2 className="font-semibold">Account</h2>
@@ -27,7 +32,7 @@ const LinksAccount = () => {
           <Settings />
         </ButtonTitleIcon>
 
-        <ButtonTitleIcon title="Logout" handleClick={logout}>
+        <ButtonTitleIcon title="Logout" handleClick={handleLogout}>
           <LogOut />
         </ButtonTitleIcon>
       </div>

@@ -10,8 +10,8 @@ namespace FavoriteMovieAppBackEnd.Models.Entities
         public required string UserId { get; set; }
         public ApplicationUser? User { get; set; }
 
-        public required Guid MediaItemId { get; set; }
-        public MediaItem? MediaItem { get; set; }
+        public Guid MediaItemId { get; set; }
+        public MediaItem MediaItem { get; set; }
 
 
 

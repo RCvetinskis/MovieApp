@@ -1,5 +1,4 @@
 import { getFavoritesListByUserId } from "@/actions/backend/favorites-serverside";
-import { fetchMediaItemsByids } from "@/actions/tmdb api/getRequests";
 import CardsContainer, {
   CardsContainerSkeleton,
 } from "@/components/cards/cards-container";
@@ -10,24 +9,32 @@ import TitleSkeleton from "@/components/skeletons/title-skeleton";
 import { limit } from "@/lib/constants";
 import { IFavoritesListResponse } from "@/types";
 import ToggleType from "./toggle-type";
+import { fetchMediaItemsByids } from "@/actions/tmdb api/getRequests";
+import SearchFilterContainer from "../../_components/search-filter-container";
 
 type Props = {
   userId: string;
   searchParams: {
     page?: string;
     type?: string;
+    query?: string;
+    sortBy?: string;
   };
 };
 
 const FavoritePageContent = async ({ userId, searchParams }: Props) => {
   const page = Number(searchParams.page) || 1;
   const type = searchParams.type;
+  const query = searchParams.query;
+  const sortBy = searchParams.sortBy;
 
   const favoritesIds = (await getFavoritesListByUserId(
     userId,
     page,
     limit,
-    type
+    type,
+    query,
+    sortBy
   )) as IFavoritesListResponse;
 
   const Content = ({ children }: { children: React.ReactNode }) => {
@@ -37,6 +44,7 @@ const FavoritePageContent = async ({ userId, searchParams }: Props) => {
           <h1 className="text-xl md:text-3xl font-semibold mb-4">Favorites</h1>
 
           <ToggleType />
+          <SearchFilterContainer />
         </header>
 
         <main>{children}</main>

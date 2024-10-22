@@ -3,38 +3,36 @@
 import { Heart, HeartCrack } from "lucide-react";
 import { Button, buttonVariants } from "../../ui/button";
 import { useEffect, useState, useTransition } from "react";
-import Cookies from "js-cookie";
 import {
   addToFavorites,
   getUserFavoriteMediaById,
   removeFromFavorites,
 } from "@/actions/backend/favorite";
 import HoverLabel from "@/components/hover-label";
-import { IFavoriteResponse } from "@/types";
+import { IFavoriteResponse, IMediaItemForReactProps } from "@/types";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { VariantProps } from "class-variance-authority";
 import { cn } from "@/lib/utils";
-import useUser from "@/hooks/useUser";
 import { useSetAuthorizedDialog } from "@/store/store";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useUserStore } from "@/store/store-user";
 type Props = {
-  type: "tv" | "movie";
-  tmdbId: string;
+  mediaItem: IMediaItemForReactProps;
   variant?: VariantProps<typeof buttonVariants>["variant"];
   size?: VariantProps<typeof buttonVariants>["size"];
   className?: string;
 };
 
-const ToggleFavorite = ({ type, tmdbId, variant, className, size }: Props) => {
+const ToggleFavorite = ({ mediaItem, variant, className, size }: Props) => {
   const [favorite, setFavorite] = useState<IFavoriteResponse | null>(null);
   const [isPending, startTransition] = useTransition();
   const { setOpen } = useSetAuthorizedDialog();
   const router = useRouter();
-  const { user } = useUser();
+  const { user } = useUserStore();
+  const { type, tmdbId } = mediaItem;
 
   useEffect(() => {
-    if (!user) return;
     getUserFavoriteMediaById(type, tmdbId)
       .then((res) => {
         setFavorite(res.result);
@@ -47,34 +45,58 @@ const ToggleFavorite = ({ type, tmdbId, variant, className, size }: Props) => {
   const isSameTmdb = favorite?.mediaItem.tmdbId === tmdbId.toString();
   const isSameType = favorite?.mediaItem.type.toLocaleLowerCase() === type;
   const isSame = favorite && isSameTmdb && isSameType;
+
   const HeartIcon = isSame ? HeartCrack : Heart;
   const label = isSame ? "Remove from favorites" : "Add to favorites";
 
   const handleClick = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.stopPropagation();
 
-    startTransition(() => {
+    startTransition(async () => {
       if (!user) {
         setOpen(true);
         return;
       }
-      isSame
-        ? removeFromFavorites(type, tmdbId)
-            .then((res) => {
-              if (res) {
-                setFavorite(null);
-                router.refresh();
-                toast.success("Remove from favorites");
-              }
-            })
-            .catch((e) => toast.error(e.message))
-        : addToFavorites(type, tmdbId)
-            .then((res) => {
-              setFavorite(res.result);
-              router.refresh();
-              toast.success(res.message);
-            })
-            .catch(() => setFavorite(null));
+
+      const prevFavorite = favorite;
+
+      if (isSame) {
+        setFavorite(null); // Optimistic removal
+
+        try {
+          const res = await removeFromFavorites(
+            mediaItem.type,
+            mediaItem.tmdbId
+          );
+          if (!res) throw new Error("Failed to remove from favorites");
+          router.refresh();
+          toast.success("Removed from favorites");
+        } catch (error) {
+          setFavorite(prevFavorite); // Revert on error
+          toast.error("Failed to remove from favorites");
+        }
+      } else {
+        const newFavorite = {
+          id: (Math.random() * 1001).toString(),
+          userId: user.id,
+          mediaItem: {
+            id: (Math.random() * 1001).toString(),
+            tmdbId,
+            type,
+          },
+        }; // Optimistic addition
+        setFavorite(newFavorite);
+
+        try {
+          const res = await addToFavorites(mediaItem);
+          setFavorite(res.result);
+          router.refresh();
+          toast.success(res.message);
+        } catch (error) {
+          setFavorite(prevFavorite); // Revert on error
+          toast.error("Failed to add to favorites");
+        }
+      }
     });
   };
   return (
@@ -83,7 +105,7 @@ const ToggleFavorite = ({ type, tmdbId, variant, className, size }: Props) => {
         onClick={handleClick}
         disabled={isPending}
         size={size}
-        variant={variant ? variant : "ghost"}
+        variant={variant ?? "ghost"}
         className={cn(className)}
       >
         <HeartIcon />

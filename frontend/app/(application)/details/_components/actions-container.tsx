@@ -6,30 +6,22 @@ import DialogWatchlist, {
   DialogWatchlistSkeleton,
 } from "@/components/authenticated/dialogs/dialog-watchlist";
 import ActionPlayTrailer from "@/components/clientActions/userActions/action-play-trailer";
-import { Video } from "@/types";
+import { IMediaItemForReactProps, Video } from "@/types";
 
 type Props = {
-  tmdbId: string;
-  type: "tv" | "movie";
-  title: string;
+  mediaItem: IMediaItemForReactProps;
 };
 
-const ActionsContainer = async ({ tmdbId, type, title }: Props) => {
+const ActionsContainer = async ({ mediaItem }: Props) => {
   const youtubeId: Video | undefined = await getYoutubeMediaTrailer(
-    tmdbId,
-    type
+    mediaItem.tmdbId,
+    mediaItem.type
   );
-  const mediaItem = {
-    tmdbId,
-    type,
-    title,
-  };
 
   return (
     <div className="flex flex-wrap items-center gap-2">
       <ToggleFavorite
-        tmdbId={tmdbId}
-        type={type}
+        mediaItem={mediaItem}
         className="rounded-full p-2 aspect-square"
         variant={"secondary"}
         size={"lg"}

@@ -1,10 +1,7 @@
 # Ignore files in the frontend (Next.js)
 frontend/node_modules/
 frontend/.next/
-frontend/.env.local
-frontend/.env.development.local
-frontend/.env.test.local
-frontend/.env.production.local
+frontend/.env*
 frontend/dist/
 frontend/coverage/
 frontend/*.log

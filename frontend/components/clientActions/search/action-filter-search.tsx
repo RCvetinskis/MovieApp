@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 const ActionFilterSearch = () => {
   const searchParams = useSearchParams();
   const router = useRouter();
-  const page = searchParams.get("page") || "1";
+  const page = searchParams.get("page") ?? "1";
   const pathname = usePathname();
   const type = pathname.split("/")[1] || "";
 
@@ -26,7 +26,7 @@ const ActionFilterSearch = () => {
   } = useSearchFilterStore();
 
   const genresIds = genres.map((item) => item.id.toString());
-  const keyWordParam = keyword && keyword.id.toString();
+  const keyWordParam = keyword?.id.toString();
 
   // Function to determine if any filters or sort options are set
   const hasFiltersOrSort = () => {
@@ -45,7 +45,7 @@ const ActionFilterSearch = () => {
   const handleSearch = () => {
     startTransition(() => {
       const queryParams = new URLSearchParams({
-        with_original_language: language || "en",
+        with_original_language: language ?? "en",
         page,
         ...(releaseDateFrom && { release_date_gte: releaseDateFrom }),
         ...(releaseDateTo && { release_date_lte: releaseDateTo }),

@@ -1,6 +1,7 @@
 import axios from "axios";
 import { httpsAgent } from "./utils";
 import { getUserTokenId } from "./get-user-token-id";
+import { IMediaItemForReactProps, IMediaType } from "@/types";
 
 export const getUserFavoriteMediaById = async (
   type: string,
@@ -34,7 +35,7 @@ export const getUserFavoriteMediaById = async (
     throw new Error(message);
   }
 };
-export const addToFavorites = async (type: "movie" | "tv", tmdbId: string) => {
+export const addToFavorites = async (mediaItem: IMediaItemForReactProps) => {
   try {
     const { token, userId } = await getUserTokenId();
     if (!token || !userId) {
@@ -43,8 +44,7 @@ export const addToFavorites = async (type: "movie" | "tv", tmdbId: string) => {
     const response = await axios.post(
       `https://localhost:7163/api/Favorites/user/${userId}/add`,
       {
-        tmdbId,
-        type,
+        mediaItem,
       },
       {
         headers: {
@@ -64,10 +64,7 @@ export const addToFavorites = async (type: "movie" | "tv", tmdbId: string) => {
     throw new Error(message);
   }
 };
-export const removeFromFavorites = async (
-  type: "movie" | "tv",
-  tmdbId: string
-) => {
+export const removeFromFavorites = async (type: IMediaType, tmdbId: string) => {
   try {
     const { token, userId } = await getUserTokenId();
     if (!token || !userId) {
@@ -83,7 +80,7 @@ export const removeFromFavorites = async (
         httpsAgent,
       }
     );
-    const deleted = response.status === 204 ? true : false;
+    const deleted = response.status === 204;
     return deleted;
   } catch (error: any) {
     console.log(error);

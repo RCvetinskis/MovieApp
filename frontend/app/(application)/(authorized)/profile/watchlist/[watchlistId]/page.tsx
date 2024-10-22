@@ -2,7 +2,7 @@ import { getWatchListById } from "@/actions/backend/watchlist-serverside";
 import { IWatchListResponse } from "@/types";
 import { redirect } from "next/navigation";
 import MainContainer from "./_components/main-container";
-import SearchFilterContainer from "./_components/search-filter-container";
+import SearchFilterContainer from "../../_components/search-filter-container";
 import Header from "./_components/header";
 
 type Props = {

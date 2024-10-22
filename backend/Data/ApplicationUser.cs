@@ -27,5 +27,10 @@ namespace FavoriteMovieAppBackEnd.Data
         // Relationship with Favorites and Watchlist
         public ICollection<Favorites> Favorites { get; set; } = new List<Favorites>();
         public ICollection<Watchlist> Watchlist { get; set; } = new List<Watchlist>();
+
+        // One-to-many notiifications
+        public ICollection<Notification> Notification { get; set; } = new List<Notification>();
+
+
     }
 }

@@ -8,11 +8,20 @@ import Link from "next/link";
 import HoverContent from "../authenticated/cardActions/hover-content";
 import { Button } from "../ui/button";
 import { RectangleEllipsis } from "lucide-react";
+import { IMediaType } from "@/types";
+import useAirDates from "@/hooks/useAirDates";
 type Props = {
   item: any;
 };
 
 const MainCard = ({ item }: Props) => {
+  const type: IMediaType = item.title ? "movie" : "tv";
+  const { airDates, isLoading } = useAirDates(
+    type === "tv" ? item.id.toString() : ""
+  );
+
+  if (isLoading) return <MainCardSkeleton />;
+
   const image = item.poster_path
     ? `${tmdbImageUrl}/${item.poster_path}`
     : item.profile_path
@@ -27,11 +36,12 @@ const MainCard = ({ item }: Props) => {
     ? "person"
     : "tv";
 
-  const type: "movie" | "tv" = item.title ? "movie" : "tv";
   const mediaItem = {
-    type,
     tmdbId: item.id.toString(),
+    type,
     title,
+    lastEpisodeDate: airDates?.lastEpisodeDate,
+    nextEpisodeDate: airDates?.nextEpisodeDate,
   };
 
   return (

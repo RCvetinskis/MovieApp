@@ -13,8 +13,7 @@ namespace FavoriteMovieAppBackEnd.Models.Entities
         public Guid? WatchlistId { get; set; }
         public Watchlist? Watchlist { get; set; }
 
-        public Guid? FavoriteId { get; set; }
-        public Favorites? Favorite { get; set; }
+        public ICollection<Favorites> Favorites { get; set; } = new List<Favorites>();
 
         public DateTime? LastEpisodeDate { get; set; }
         public DateTime? NextEpisodeDate { get; set; }

@@ -5,6 +5,7 @@ using FavoriteMovieAppBackEnd.Models.Entities;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Formatters;
 using Microsoft.EntityFrameworkCore;
 
 namespace FavoriteMovieAppBackEnd.Controllers
@@ -40,15 +41,15 @@ namespace FavoriteMovieAppBackEnd.Controllers
             return await _context.MediaItem.FirstOrDefaultAsync(m => m.TmdbId == tmdbId && m.Type == mediaType);
         }
 
+
+        //CRUD
+
         // Add to Favorites
-        [HttpPost("user/{id}/add"), Authorize]
-        public async Task<IActionResult> AddToFavorites(string id, [FromBody] AddFavoritesDto favoritesAddDto)
+        [HttpPost("user/{userId}/add"), Authorize]
+        public async Task<IActionResult> AddToFavorites(string userId, [FromBody] AddFavoritesDto favoritesAddDto)
         {
             try
             {
-                var user = await GetUserByIdAsync(id);
-                if (user == null) return NotFound(new { message = "User not found." });
-
                 if (!TryParseMediaType(favoritesAddDto.MediaItem.Type, out var mediaType))
                     return BadRequest(new { message = "Invalid media type." });
 
@@ -56,35 +57,78 @@ namespace FavoriteMovieAppBackEnd.Controllers
                     return BadRequest(new { message = "Provide tmdbId" });
 
                 var existingFavorite = await _context.Favorites
-                    .Where(f => f.UserId == id)
-                    .AnyAsync(f => f.MediaItem.TmdbId == favoritesAddDto.MediaItem.TmdbId && f.MediaItem.Type == mediaType);
+                    .Include(f => f.MediaItem)
+                    .FirstOrDefaultAsync(f => f.UserId == userId && f.MediaItem.TmdbId == favoritesAddDto.MediaItem.TmdbId && f.MediaItem.Type == mediaType);
 
-                if (existingFavorite)
+                if (existingFavorite is not null)
                     return BadRequest(new { message = "This movie/tv show is already in your favorites list." });
 
-                var mediaItem = await GetExistingMediaItemAsync(favoritesAddDto.MediaItem.TmdbId, mediaType)
-                    ?? new MediaItem
-                    {
-                        Type = mediaType,
-                        TmdbId = favoritesAddDto.MediaItem.TmdbId,
-                        LastEpisodeDate = favoritesAddDto.MediaItem.LastEpisodeDate,
-                        NextEpisodeDate = favoritesAddDto.MediaItem.NextEpisodeDate
-                    };
 
+
+                //  create the MediaItem and assign the FavoriteId
+                var mediaItem = await GetExistingMediaItemAsync(favoritesAddDto.MediaItem.TmdbId, mediaType)
+                           ?? new MediaItem
+                           {
+                               Type = mediaType,
+                               TmdbId = favoritesAddDto.MediaItem.TmdbId,
+                               Title = favoritesAddDto.MediaItem.Title,
+                               LastEpisodeDate = favoritesAddDto.MediaItem.LastEpisodeDate,
+                               NextEpisodeDate = favoritesAddDto.MediaItem.NextEpisodeDate,
+                           };
+
+                // Ensure the MediaItem is saved before adding to Favorites
                 if (mediaItem.Id == Guid.Empty)
                 {
                     await _context.MediaItem.AddAsync(mediaItem);
-                    await _context.SaveChangesAsync();
                 }
 
                 var favorite = new Favorites
                 {
-                    UserId = user.Id,
+                    UserId = userId,
                     MediaItemId = mediaItem.Id
                 };
 
                 await _context.Favorites.AddAsync(favorite);
                 await _context.SaveChangesAsync();
+
+
+
+                var currentDate = DateTime.UtcNow.Date;
+                var tomorrow = currentDate.AddDays(1);
+                var yesterday = currentDate.AddDays(-1);
+
+
+                var notifications = new List<Notification>();
+
+                if (mediaItem.LastEpisodeDate.HasValue &&
+                    (mediaItem.LastEpisodeDate.Value.Date == yesterday || mediaItem.LastEpisodeDate.Value.Date == currentDate))
+                {
+                    var notification = new Notification
+                    {
+                        UserId = userId,
+                        Message = $"The latest episode of {mediaItem.Title} was released on {mediaItem.LastEpisodeDate.Value.Date:yyyy-MM-dd}."
+
+                    };
+                    notifications.Add(notification);
+                }
+
+                if (mediaItem.NextEpisodeDate.HasValue &&
+                    (mediaItem.NextEpisodeDate.Value.Date == tomorrow || mediaItem.NextEpisodeDate.Value.Date == currentDate))
+                {
+                    var notification = new Notification
+                    {
+                        UserId = userId,
+                        Message = $"The latest episode of {mediaItem.Title} was released on {mediaItem.NextEpisodeDate.Value.Date:yyyy-MM-dd}."
+
+                    };
+                    notifications.Add(notification);
+                }
+
+                if (notifications.Any())
+                {
+                    await _context.Notification.AddRangeAsync(notifications);
+                    await _context.SaveChangesAsync();
+                }
 
 
                 var result = new
@@ -93,14 +137,15 @@ namespace FavoriteMovieAppBackEnd.Controllers
                     UserId = favorite.UserId,
                     MediaItem = new
                     {
-                        Type = mediaItem.Type,
+                        Id = mediaItem.Id,
+                        Type = mediaItem.Type.ToString(),
                         TmdbId = mediaItem.TmdbId,
                         LastEpisodeDate = mediaItem.LastEpisodeDate,
                         NextEpisodeDate = mediaItem.NextEpisodeDate
                     }
                 };
 
-                return Ok(new { message = "Added to favorites successfully.", result = result });
+                return Ok(new { message = "Added to favorites successfully.", result });
             }
             catch (Exception ex)
             {
@@ -114,22 +159,44 @@ namespace FavoriteMovieAppBackEnd.Controllers
         {
             try
             {
-                var user = await GetUserByIdAsync(userId);
-                if (user == null) return NotFound(new { message = "User not found." });
 
                 if (!TryParseMediaType(type, out var mediaType))
                     return BadRequest(new { message = "Invalid media type." });
 
                 var favorite = await _context.Favorites
                     .Where(f => f.UserId == userId && f.MediaItem.TmdbId == tmdbId && f.MediaItem.Type == mediaType)
-                    .Select(f => new { f.MediaItem, f.Id, f.UserId })
+                    .Select(f => new
+                    {
+                        f.Id,
+                        f.UserId,
+                        f.MediaItemId,
+                        f.MediaItem.Type,
+                        f.MediaItem.TmdbId,
+                        f.MediaItem.LastEpisodeDate,
+                        f.MediaItem.NextEpisodeDate,
+
+                    })
                     .FirstOrDefaultAsync();
 
                 if (favorite == null)
                     return NotFound(new { message = "Favorite movie/tv show does not exist." });
 
 
-                return Ok(new { message = "Favorite found", favorite });
+                var result = new
+                {
+                    Id = favorite.Id,
+                    UserId = favorite.UserId,
+                    MediaItem = new
+                    {
+                        Id = favorite.MediaItemId,
+                        Type = favorite.Type.ToString(),
+                        TmdbId = favorite.TmdbId,
+                        LastEpisodeDate = favorite.LastEpisodeDate,
+                        NextEpisodeDate = favorite.NextEpisodeDate
+                    }
+                };
+
+                return Ok(new { message = "Favorite found", result });
             }
             catch (Exception ex)
             {
@@ -157,13 +224,52 @@ namespace FavoriteMovieAppBackEnd.Controllers
                     else
                         return BadRequest(new { message = "Invalid media type." });
                 }
+                if (!string.IsNullOrEmpty(query))
+                {
+
+                    favoritesQuery = favoritesQuery.Where(f => f.MediaItem.Title.ToLower().Contains(query.ToLower()));
+                }
+
+
+
+                switch (sortBy?.ToLower())
+                {
+                    case "original":
+                        favoritesQuery = favoritesQuery.OrderBy(f => f.MediaItem.AddedAt);
+                        break;
+                    case "addedAt_asc":
+                        favoritesQuery = favoritesQuery.OrderBy(f => f.MediaItem.AddedAt);
+                        break;
+                    case "addedAt_desc":
+                        favoritesQuery = favoritesQuery.OrderByDescending(f => f.MediaItem.AddedAt);
+                        break;
+                    case "title_az":
+                        favoritesQuery = favoritesQuery.OrderBy(f => f.MediaItem.Title);
+                        break;
+                    case "title_za":
+                        favoritesQuery = favoritesQuery.OrderByDescending(f => f.MediaItem.Title);
+                        Console.WriteLine($"favoritesQuery: {favoritesQuery}");
+                        break;
+                    case "tv_first":
+                        favoritesQuery = favoritesQuery.OrderByDescending(f => f.MediaItem.Type)
+                            .ThenBy(f => f.MediaItem.Title);
+                        break;
+                    case "movie_first":
+                        favoritesQuery = favoritesQuery.OrderBy(f => f.MediaItem.Type)
+                            .ThenBy(f => f.MediaItem.Title);
+                        break;
+
+                    default:
+                        favoritesQuery = favoritesQuery.OrderByDescending(f => f.MediaItem.AddedAt);
+                        break;
+
+                }
 
                 var totalFavorites = await favoritesQuery.CountAsync();
                 var totalPages = (int)Math.Ceiling(totalFavorites / (double)limit);
 
                 var favorites = await favoritesQuery
-                    .Select(f => new { f.Id, Type = f.MediaItem.Type.ToString(), f.MediaItem.TmdbId, f.CreatedAt })
-                    .OrderBy(f => f.CreatedAt)
+                    .Select(f => new { f.Id, Type = f.MediaItem.Type.ToString().ToLower(), f.MediaItem.TmdbId, f.CreatedAt })
                     .Skip((page - 1) * limit)
                     .Take(limit)
                     .ToListAsync();

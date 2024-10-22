@@ -50,7 +50,7 @@ const DisplayRepliesAction = ({ commentId }: Props) => {
 
     if (open) {
       const ws = new WebSocket(
-        `ws://192.168.0.86:7163/comment/post/${commentId}`
+        `${process.env.NEXT_PUBLIC_BACKEND_WS_URL}/comment/post/${commentId}`
       );
 
       ws.onmessage = (event) => {

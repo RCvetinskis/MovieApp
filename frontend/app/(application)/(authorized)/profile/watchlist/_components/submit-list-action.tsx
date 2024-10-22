@@ -8,7 +8,6 @@ import { useToast } from "@/hooks/use-toast";
 import { useRouter } from "next/navigation";
 import { useWatchListStore } from "@/store/store-watchlist";
 
-// TODO: display public watchlists to users
 type Props = {
   watchList: IWatchListPostRequest;
 };

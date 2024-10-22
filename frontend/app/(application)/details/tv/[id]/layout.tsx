@@ -10,7 +10,7 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { getMediaById } from "@/actions/tmdb api/getRequests";
 import { tmdbImageUrl } from "@/lib/constants";
-import { Genre } from "@/types";
+import { Genre, IMediaType } from "@/types";
 import Navigation from "../../_components/tv/navigation";
 
 type Props = {
@@ -29,6 +29,14 @@ const TvDetailsLayout = async ({ children, params }: Props) => {
     ? `${tmdbImageUrl}/${tvShow.poster_path}`
     : "/assets/no_image.jpg";
 
+  const mediaItem = {
+    tmdbId: tvShow.id.toString(),
+    type: "tv" as IMediaType,
+    title: tvShow.name,
+    lastEpisodeDate: tvShow.last_air_date,
+    nextEpisodeDate: tvShow.next_episode_to_air?.air_date,
+  };
+  console.log(mediaItem);
   return (
     <div className="space-y-4">
       <Header backdropPath={tvShow.backdrop_path}>
@@ -46,11 +54,20 @@ const TvDetailsLayout = async ({ children, params }: Props) => {
           <div className="text-white space-y-2 ">
             {/* tvShow Title */}
             <h1 className="text-xl md:text-3xl font-bold">
-              {tvShow.name}
+              <span> {tvShow.name}</span>
               <span className="text-muted-foreground">
                 ({tvShow.first_air_date})
               </span>
             </h1>
+            {tvShow.next_episode_to_air?.air_date && (
+              <h2 className="text:lg md:text-xl font-bold">
+                <span> Next Episode Release Date</span>
+                <span className="text-muted-foreground">
+                  ({tvShow.next_episode_to_air?.air_date})
+                </span>
+              </h2>
+            )}
+
             {/* seasons and episodes total */}
             <div className="flex items-center gap-3">
               <Badge className="space-x-1" variant={"secondary"}>
@@ -78,11 +95,7 @@ const TvDetailsLayout = async ({ children, params }: Props) => {
               <ProductionCountries countries={tvShow.production_countries} />
             </div>
 
-            <ActionsContainer
-              tmdbId={tvShow.id.toString()}
-              type="tv"
-              title={tvShow.title}
-            />
+            <ActionsContainer mediaItem={mediaItem} />
 
             <KeyWordsContainer id={tvShow.id.toString()} type="tv" />
 

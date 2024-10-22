@@ -1,6 +1,5 @@
 "use client";
 import { Button } from "../../ui/button";
-import useUser from "@/hooks/useUser";
 import { NavItemSkeleton } from "../../navigation/nav-item";
 import {
   DropdownMenu,
@@ -15,17 +14,17 @@ import Link from "next/link";
 import LinksLists from "../links-lists";
 import LinksAccount from "../links-account";
 import UserAvatar from "../user-avatar";
+import { useUserStore } from "@/store/store-user";
 
 const NavUser = () => {
-  const { user } = useUser();
-
+  const { user } = useUserStore();
   return (
     <>
       {user ? (
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button
-              className="p-0 px-2 rounded-full"
+              className="p-0 px-2 rounded-full "
               variant={"ghost"}
               size={"sm"}
             >

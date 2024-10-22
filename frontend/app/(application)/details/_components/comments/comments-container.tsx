@@ -16,7 +16,7 @@ const CommentsContainer = ({ comments, postId }: Props) => {
     comments?.response.comments || []
   );
   const [totalComments, setTotalComments] = useState<number>(
-    comments?.response.totalComments || 0
+    comments?.response.totalComments ?? 0
   );
 
   const handleWebSocketMessage = (newComment: IComment) => {
@@ -25,7 +25,7 @@ const CommentsContainer = ({ comments, postId }: Props) => {
   };
 
   useWebSocket(
-    `ws://192.168.0.86:7163/comment/post/${postId}`,
+    `${process.env.NEXT_PUBLIC_BACKEND_WS_URL}/comment/post/${postId}`,
     handleWebSocketMessage
   );
 
